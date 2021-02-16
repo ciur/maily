@@ -59,10 +59,11 @@ def main(args):
         config = yaml.load(f.read(), Loader=yaml.Loader)
 
         msg = EmailMessage()
-        msg.set_content("test")
-        msg['Subject'] = subject_field or DEFAULT_SUBJECT
-        msg['From'] = from_field
-        msg['To'] = to_field
+        text_body = config.get('body', "default body")
+        msg.set_content(text_body)
+        msg['Subject'] = subject_field or config['body'] or DEFAULT_SUBJECT
+        msg['From'] = from_field or config['from']
+        msg['To'] = to_field or config['to']
 
         add_attachment(msg, args.attach)
 

@@ -2,3 +2,4 @@ port: 587
 host: smtp.example.com
 user: user@example.com
 pass: some-password
+body: message body example
