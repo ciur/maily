@@ -1,3 +1,4 @@
+import os
 import ssl
 import yaml
 import smtplib
@@ -15,13 +16,46 @@ def send_mail(host, port, user, password, msg):
         smtp.login(user, password)
         smtp.send_message(msg)
 
+
+def add_attachment(msg, attachment):
+    if not attachment:
+        return
+
+    maintype, subtype = None, None
+
+    if '.pdf' in attachment.lower():
+        maintype, subtype = 'application', 'pdf'
+
+    if '.txt' in attachment.lower():
+        maintype, subtype = 'plain', 'text'
+
+    if '.jpg' in attachment.lower():
+        maintype, subtype = 'image', 'jpeg'
+
+    if '.jpeg' in attachment.lower():
+        maintype, subtype = 'image', 'jpeg'
+
+    if '.jpeg' in attachment.lower():
+        maintype, subtype = 'image', 'png'
+
+    if os.path.isfile(attachment):
+        with open(attachment, 'rb') as fp:
+            data = fp.read()
+
+        msg.add_attachment(
+            data,
+            maintype=maintype,
+            subtype=subtype
+        )
+
+
 def main(args):
 
     from_field = getattr(args, 'from')
     to_field = args.to
     subject_field = args.subject
 
-    with open(args.config) as f:
+    with open(args.config or 'config.yml') as f:
         config = yaml.load(f.read(), Loader=yaml.Loader)
 
         msg = EmailMessage()
@@ -29,6 +63,8 @@ def main(args):
         msg['Subject'] = subject_field or DEFAULT_SUBJECT
         msg['From'] = from_field
         msg['To'] = to_field
+
+        add_attachment(msg, args.attach)
 
         send_mail(
             host=config['host'],
@@ -63,6 +99,10 @@ if __name__ == '__main__':
         '--config',
         help="configuration file"
     )
+    parser.add_argument(
+        '-a',
+        '--attach',
+        help="path to file to include as attachment"
+    )
 
     main(parser.parse_args())
-
